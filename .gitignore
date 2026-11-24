@@ -11,3 +11,6 @@ __pycache__/
 *.synctex.gz
 _region_.*
 prv_*
+# Hugo cache and lock files for presentation/site
+presentation/site/resources/
+presentation/site/.hugo_build.lock

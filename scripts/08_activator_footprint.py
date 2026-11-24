@@ -15,10 +15,12 @@ from datetime import datetime
 import textwrap
 
 # ==========================================
-# 🛑 HAMQTH CREDENTIALS (REQUIRED)
+# HAMQTH CREDENTIALS (OPTIONAL)
 # ==========================================
-HAMQTH_USER = os.environ['HAMQTH_USER']
-HAMQTH_PASS = os.environ['HAMQTH_PASS']
+# Set HAMQTH_USER and HAMQTH_PASS in the environment; without them the
+# HamQTH location lookup is skipped.
+HAMQTH_USER = os.environ.get('HAMQTH_USER', '')
+HAMQTH_PASS = os.environ.get('HAMQTH_PASS', '')
 
 # 🎨 HIGHLY MUTED VINTAGE PALETTE
 paper_bg = '#f7f6f1'
@@ -114,7 +116,7 @@ for call, park in operator_footprints:
 hamqth_session_id = None
 debug_html = []
 
-if HAMQTH_USER != 'YOUR_HAMQTH_USERNAME':
+if HAMQTH_USER and HAMQTH_PASS:
     try:
         auth_res = session.get("https://www.hamqth.com/xml.php", params={'u': HAMQTH_USER, 'p': HAMQTH_PASS}, timeout=10)
         auth_text = auth_res.text

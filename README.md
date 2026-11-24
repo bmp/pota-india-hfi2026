@@ -15,6 +15,7 @@ paper/
   submitted/       Paper as submitted for double-blind review (LaTeX, figures, PDF)
   camera-ready/    Final version, after acceptance
 presentation/      Slides as a PDF (pota_india_hfi2026_slides.pdf)
+  site/            Minimal Hugo site the PDF is built from: the deck's markdown, layout and images
 scripts/           Analysis scripts and requirements.txt
 data/
   2026-07-09-figure-data/   Plotly figure data behind the paper and post (July 2026)
@@ -62,6 +63,25 @@ python scripts/compare.py data/<date>-snapshot
 
 `compare.py` recomputes the statistics with a 9 July 2026 cutoff, which
 reproduces the paper's numbers, alongside the current totals.
+
+`reveal_to_pdf.py` exports the presentation to PDF with clickable links. It
+needs Hugo, Pillow, and Chromium or Chrome (set `CHROME` if the browser isn't
+found automatically). To rebuild the PDF from the copy in this repository:
+
+```sh
+python scripts/reveal_to_pdf.py -o presentation/pota_india_hfi2026_slides.pdf
+```
+
+When the deck changes on the blog, refresh `presentation/site/` from the
+blog's Hugo source first:
+
+```sh
+python scripts/reveal_to_pdf.py --update-from PATH/TO/BLOG \
+    -o presentation/pota_india_hfi2026_slides.pdf
+```
+
+Web links in the PDF point to the live site. Footnote numbers jump to the
+footnotes page, and the footnotes' back-arrows return to the citing slide.
 
 ## Data sources
 

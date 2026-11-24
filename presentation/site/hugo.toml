@@ -1,0 +1,28 @@
+baseURL = 'https://ham.bharathpalavalli.com/'
+disableKinds = ['taxonomy', 'term', 'RSS', 'sitemap', 'robotsTXT', '404']
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+[outputFormats.reveal]
+  mediaType = 'text/html'
+  baseName = 'presentation'
+  isHTML = true
+
+[outputs]
+  page = ['reveal']
+
+# The reveal layout converts images with resources.Get, so static/ is
+# mounted as assets/ too.
+[[module.mounts]]
+  source = 'content'
+  target = 'content'
+[[module.mounts]]
+  source = 'layouts'
+  target = 'layouts'
+[[module.mounts]]
+  source = 'static'
+  target = 'static'
+[[module.mounts]]
+  source = 'static'
+  target = 'assets'

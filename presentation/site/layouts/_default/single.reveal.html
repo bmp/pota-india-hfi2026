@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{{ .Title }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+    <link id="reveal-theme" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/black.css">
+    <meta name="description" content="{{ .Description | default .Site.Params.SiteDescription | default .Title }}">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('theme');
+        const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+        const themeLink = document.getElementById('reveal-theme');
+        const themeUrl = "https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/";
+
+        if (savedTheme === 'light' || (!savedTheme && prefersLight)) {
+          document.documentElement.setAttribute('data-theme', 'light');
+          themeLink.href = themeUrl + "simple.css";
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          themeLink.href = themeUrl + "black.css";
+        }
+      })();
+    </script>
+
+    <style>
+        /* 1. Sync Colors with Blog Themes */
+        :root { --reveal-accent: #005bb5; }
+        [data-theme="dark"] { --reveal-accent: #8cc2dd; }
+        .reveal .controls, .reveal .progress { color: var(--reveal-accent) !important; }
+        .reveal a:not(.back-to-post):not(.footnote-backref) { color: var(--reveal-accent); }
+
+        /* 2. Reset Theme Fonts & Global Center Alignment */
+        .reveal { font-family: inherit; }
+        .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+            font-family: inherit;
+            text-transform: none !important;
+        }
+        .reveal .slides section {
+            text-align: center !important;
+        }
+
+        /* 3. Universal Centering for Custom Configurations */
+        .reveal figure, .reveal p:has(img), .reveal section > p {
+            margin: 20px auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            width: 100% !important;
+        }
+
+        .reveal figure img, .reveal img:not(.title-logo) {
+            max-height: 65vh !important;
+            object-fit: contain !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            margin: 0 auto !important;
+            display: block !important;
+        }
+
+        .reveal figcaption { font-size: 0.6em; color: gray; text-align: center; margin-top: 15px; }
+
+        /* 4. Title Slide Layout & Masked Logo */
+        .title-slide-container h1 { font-size: 2.2em !important; margin: 15px 0 !important; }
+        .title-slide-container h2 { font-size: 1.1em !important; margin: 0 !important; opacity: 0.8; }
+        .title-slide-container p { margin: 5px 0 !important; }
+
+        .title-logo {
+            width: 100%;
+            height: 50px;
+            margin: 0 auto 20px auto !important;
+            background-color: #a73030;
+            -webkit-mask: url(/VU3GLJ_Logo.png) no-repeat center / contain;
+            mask: url(/VU3GLJ_Logo.png) no-repeat center / contain;
+        }
+
+        /* 5. Fixed Top-Right Mini Logo */
+        .global-logo {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            width: 100px;
+            height: 50px;
+            background-color: #a73030;
+            -webkit-mask: url(/VU3GLJ_Logo.png) no-repeat center / contain;
+            mask: url(/VU3GLJ_Logo.png) no-repeat center / contain;
+            z-index: 99;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        /* 6. Back Link Style */
+        .back-to-post {
+            display: inline-block;
+            margin-top: 25px;
+            font-size: 0.5em !important;
+            color: inherit !important;
+            text-decoration: none !important;
+            border: 1px solid currentColor;
+            padding: 10px 20px;
+            border-radius: 5px;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+        .back-to-post:hover { opacity: 1; }
+
+        /* 7. Dedicated Footnotes Slide Polish */
+        .reveal .footnotes {
+            font-size: 0.5em !important;
+            text-align: left;
+            opacity: 0.85;
+            line-height: 1.6;
+            margin-top: 20px;
+        }
+        .reveal .footnotes hr { display: none; }
+        .reveal .footnotes ol { margin-left: 2em; }
+        .reveal .footnote-backref {
+            text-decoration: none !important;
+            margin-left: 5px;
+            color: #a73030 !important;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    {{ $content := replaceRE "(?s):PROPERTIES:.*?:END:" "" .Content }}
+
+    {{/* --- PORTED WEBP CONVERSION & LAZY LOADING --- */}}
+    {{ $imgMatches := findRE `src="([^"]+\.(png|jpg|jpeg|PNG|JPG|JPEG))"` $content }}
+    {{ range $index, $match := $imgMatches }}
+      {{ $srcPath := replaceRE `src="([^"]+)"` "$1" $match }}
+      {{ $pathForResource := strings.TrimPrefix "/" $srcPath }}
+      {{ $img := resources.Get $pathForResource }}
+
+      {{ if $img }}
+        {{ $targetWidth := $img.Width }}
+        {{ if gt $targetWidth 800 }}{{ $targetWidth = 800 }}{{ end }}
+        {{ $webp := $img.Resize (printf "%dx webp q70" $targetWidth) }}
+
+        {{ $srcsetString := "" }}
+        {{ if gt $img.Width 400 }}
+          {{ $webpSmall := $img.Resize "400x webp q70" }}
+          {{ $srcsetString = printf `srcset="%s 400w, %s %dw"` $webpSmall.RelPermalink $webp.RelPermalink $webp.Width }}
+        {{ else }}
+          {{ $srcsetString = printf `srcset="%s %dw"` $webp.RelPermalink $webp.Width }}
+        {{ end }}
+
+        {{ $priorityAttr := "" }}
+        {{ if eq $index 0 }}{{ $priorityAttr = `fetchpriority="high" loading="eager"` }}{{ else }}{{ $priorityAttr = `loading="lazy"` }}{{ end }}
+
+        {{ $oldSrcAttr := printf `src="%s"` $srcPath }}
+        {{ $newSrcAttr := printf `src="%s" %s sizes="(max-width: 800px) 100vw, 800px" width="%d" height="%d" %s` $webp.RelPermalink $srcsetString $webp.Width $webp.Height $priorityAttr }}
+        {{ $content = replace $content $oldSrcAttr $newSrcAttr }}
+      {{ end }}
+    {{ end }}
+
+    {{/* Convert ALL empty ox-hugo anchor tags into spans for SEO/Accessibility */}}
+    {{ $content = replaceRE `<a id="([^"]+)"></a>` `<span id="$1"></span>` $content }}
+
+    <div id="raw-content" style="display: none;">{{ $content | safeHTML }}</div>
+
+    <div class="reveal">
+        <div class="global-logo" id="mini-logo"></div>
+
+        <div class="slides" id="slides-container">
+
+            <!-- SLIDE 1: PURE TITLE SLIDE -->
+            <section class="title-slide-container">
+                <div class="title-logo"></div>
+                <h1>{{ .Title }}</h1>
+                <h2>{{ if .Params.author }}{{ .Params.author }}{{ else }}Bharath M. Palavalli{{ end }}</h2>
+                {{ with .Params.affiliation }}
+                <p style="opacity: 0.8; font-size: 0.6em;">{{ . }}</p>
+                {{ end }}
+                {{ with .Params.event }}
+                <p style="font-size: 0.7em; margin-top: 15px !important;">{{ . }}</p>
+                <p style="opacity: 0.6; font-size: 0.7em;">{{ $.Params.event_date | default ($.Date.Format "January 2, 2006") }}</p>
+                {{ else }}
+                <p style="opacity: 0.6; font-size: 0.7em;">{{ .Date.Format "January 2, 2006" }}</p>
+                {{ end }}
+                {{ if or .Params.contact_email .Params.contact_website }}
+                <p style="font-size: 0.55em; margin-top: 15px !important;"><span>
+                  {{- with .Params.contact_email }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end -}}
+                  {{- if and .Params.contact_email .Params.contact_website }} · {{ end -}}
+                  {{- with .Params.contact_website }}<a href="{{ . }}">{{ replaceRE `^https?://` "" . }}</a>{{ end -}}
+                </span></p>
+                {{ end }}
+                <a href="{{ .Permalink }}" class="back-to-post">📝 Read the full article</a>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const rawContent = document.getElementById('raw-content');
+            const slidesContainer = document.getElementById('slides-container');
+
+            let currentHorizontalStack = null;
+            let currentVerticalSlide = null;
+
+            Array.from(rawContent.children).forEach(child => {
+
+                if (child.classList.contains('preso-container') ||
+                    child.classList.contains('preso-btn')) {
+                    return;
+                }
+
+                if (child.tagName === 'STYLE') {
+                    document.head.appendChild(child.cloneNode(true));
+                    return;
+                }
+
+                if (child.classList.contains('footnotes') || child.id === 'footnotes' || child.getAttribute('role') === 'doc-endnotes') {
+                    const footnoteSection = document.createElement('section');
+                    const footnoteTitle = document.createElement('h2');
+                    footnoteTitle.textContent = "Footnotes";
+                    footnoteSection.appendChild(footnoteTitle);
+                    footnoteSection.appendChild(child.cloneNode(true));
+                    slidesContainer.appendChild(footnoteSection);
+                    return;
+                }
+
+                // H1, H2, and H4 break right horizontally
+                if (child.tagName === 'H1' || child.tagName === 'H2' || child.tagName === 'H4') {
+                    currentHorizontalStack = document.createElement('section');
+                    slidesContainer.appendChild(currentHorizontalStack);
+
+                    currentVerticalSlide = document.createElement('section');
+                    currentVerticalSlide.appendChild(child.cloneNode(true));
+                    currentHorizontalStack.appendChild(currentVerticalSlide);
+                }
+                // H3 and H5 drop straight down vertically
+                else if (child.tagName === 'H3' || child.tagName === 'H5') {
+                    if (!currentHorizontalStack) {
+                        currentHorizontalStack = document.createElement('section');
+                        slidesContainer.appendChild(currentHorizontalStack);
+                    }
+                    currentVerticalSlide = document.createElement('section');
+                    currentVerticalSlide.appendChild(child.cloneNode(true));
+                    currentHorizontalStack.appendChild(currentVerticalSlide);
+                }
+                // Dedicated Image Frame Creator
+                else if (child.tagName === 'FIGURE' || child.querySelector('img')) {
+                    if (!currentHorizontalStack) {
+                        currentHorizontalStack = document.createElement('section');
+                        slidesContainer.appendChild(currentHorizontalStack);
+                    }
+                    const imgVerticalSlide = document.createElement('section');
+                    imgVerticalSlide.appendChild(child.cloneNode(true));
+                    currentHorizontalStack.appendChild(imgVerticalSlide);
+
+                    // FIXED: Wipe out active slide pointer state memory.
+                    // This forces any future text nodes to cleanly spawn a fresh, consecutive slide!
+                    currentVerticalSlide = null;
+                }
+                // General text elements
+                else {
+                    if (!currentVerticalSlide) {
+                        if (child.textContent.trim().length > 0) {
+                            if (!currentHorizontalStack) {
+                                currentHorizontalStack = document.createElement('section');
+                                slidesContainer.appendChild(currentHorizontalStack);
+                            }
+                            currentVerticalSlide = document.createElement('section');
+                            currentVerticalSlide.appendChild(child.cloneNode(true));
+                            currentHorizontalStack.appendChild(currentVerticalSlide);
+                        }
+                    } else {
+                        currentVerticalSlide.appendChild(child.cloneNode(true));
+                    }
+                }
+            });
+
+            Reveal.initialize({
+                hash: true,
+                center: true
+            });
+
+            const miniLogo = document.getElementById('mini-logo');
+            let returnCoords = { h: 0, v: 0 };
+
+            Reveal.on('ready', event => {
+                if (event.indexh > 0) miniLogo.style.opacity = '1';
+                setupFootnoteNavigation();
+                setupInternalNavigation();
+                adjustOverflowingText();
+            });
+
+            Reveal.on('slidechanged', event => {
+                if (event.indexh === 0) {
+                    miniLogo.style.opacity = '0';
+                } else {
+                    miniLogo.style.opacity = '1';
+                }
+            });
+
+            function adjustOverflowingText() {
+                const maxLayoutHeight = Reveal.getConfig().height - 100;
+
+                document.querySelectorAll('.reveal .slides section').forEach(slide => {
+                    if (slide.querySelector('section') ||
+                        slide.classList.contains('title-slide-container') ||
+                        slide.querySelector('figure') ||
+                        slide.querySelector('img')) {
+                        return;
+                    }
+
+                    let fontSizePercentage = 100;
+                    while (slide.scrollHeight > maxLayoutHeight && fontSizePercentage > 40) {
+                        fontSizePercentage -= 2;
+                        slide.style.fontSize = fontSizePercentage + '%';
+                    }
+                });
+                Reveal.layout();
+            }
+
+            function setupFootnoteNavigation() {
+                document.querySelectorAll('.reveal [role="doc-noteref"] a, .reveal sup a, .reveal a[href^="#fn:"]').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // Save our current location to return later
+                        returnCoords.h = Reveal.getIndices().h;
+                        returnCoords.v = Reveal.getIndices().v;
+
+                        // FIX: Count only top-level horizontal slides, not every single vertical slide
+                        const horizontalSlidesCount = document.querySelectorAll('.reveal .slides > section').length;
+
+                        // Navigate to the last horizontal stack
+                        Reveal.slide(horizontalSlidesCount - 1, 0);
+                    });
+                });
+
+                document.querySelectorAll('.reveal .footnote-backref, .reveal [role="doc-backlink"]').forEach(backlink => {
+                    backlink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // Jump back to the saved coordinates
+                        Reveal.slide(returnCoords.h, returnCoords.v);
+                    });
+                });
+            }
+
+            function setupInternalNavigation() {
+                document.querySelectorAll('.reveal a').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        // Skip the "Back to post" button and footnote links (they have their own logic)
+                        if (link.classList.contains('back-to-post') ||
+                            link.closest('[role="doc-noteref"]') ||
+                            link.getAttribute('href').includes('#fn:')) {
+                            return;
+                        }
+
+                        const href = link.getAttribute('href');
+                        if (!href) return;
+
+                        // Check if the link is an internal anchor
+                        const hashIndex = href.indexOf('#');
+                        if (hashIndex !== -1) {
+                            const targetId = href.substring(hashIndex + 1);
+
+                            // Query specifically inside the Reveal container to ignore the hidden raw-content copy
+                            const targetElement = document.querySelector('.reveal #' + CSS.escape(targetId));
+
+                            if (targetElement) {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                // Find the slide (<section>) that contains the target element
+                                const slide = targetElement.closest('section');
+
+                                if (slide) {
+                                    let hIndex = 0;
+                                    let vIndex = 0;
+
+                                    // If the parent is also a section, it's a vertical slide
+                                    if (slide.parentElement.tagName === 'SECTION') {
+                                        hIndex = Array.from(slide.parentElement.parentElement.children).indexOf(slide.parentElement);
+                                        vIndex = Array.from(slide.parentElement.children).indexOf(slide);
+                                    } else {
+                                        // It's a top-level horizontal slide
+                                        hIndex = Array.from(slide.parentElement.children).indexOf(slide);
+                                    }
+
+                                    // Let Reveal handle the jump!
+                                    Reveal.slide(hIndex, vIndex);
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
