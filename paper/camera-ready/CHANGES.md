@@ -1,7 +1,7 @@
 # Changes from the submitted version
 
 ## De-anonymisation
-- Author block: name, callsign, email and website
+- Author block: name, callsign, affiliation (Life Member, BARC and ARSI), email and website
 - Filled in the URLs withheld for review: the go-bag post (footnote in III-H), references [16] and [18], and the code and data repository
 
 ## Corrections

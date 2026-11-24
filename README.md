@@ -6,6 +6,7 @@ Hamfest India 2026, NITK Surathkal, Mangaluru (28–29 November 2026).
 
 - Blog post with interactive charts: https://ham.bharathpalavalli.com/posts/20260709153650-pota_in_india/
 - Presentation: https://ham.bharathpalavalli.com/posts/20261115205742-pota_in_india_by_the_numbers/presentation.html
+- Slides as a PDF: `presentation/pota_india_hfi2026_slides.pdf`
 
 ## Layout
 
@@ -13,7 +14,7 @@ Hamfest India 2026, NITK Surathkal, Mangaluru (28–29 November 2026).
 paper/
   submitted/       Paper as submitted for double-blind review (LaTeX, figures, PDF)
   camera-ready/    Final version, after acceptance
-presentation/      Exported slides
+presentation/      Slides as a PDF (pota_india_hfi2026_slides.pdf)
 scripts/           Analysis scripts and requirements.txt
 data/
   2026-07-09-figure-data/   Plotly figure data behind the paper and post (July 2026)
