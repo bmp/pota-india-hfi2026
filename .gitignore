@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+# LaTeX build files
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
+_region_.*
+prv_*
